@@ -58,7 +58,8 @@ export default class App extends Component {
   handleNewRequest(request) {
     //Sends POST Request to backend
     console.log(request)
-    request.target.reset()
+    // Had to comment out to get drop downs in NinelineCreator to work.
+    // request.target.reset()
     const nineLine = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
