@@ -4,8 +4,10 @@ import Responder from "./Responder";
 import { Component } from 'react';
 import ResponderCreator from "./ResponderCreator"
 import DispatchView from "./DispatchView"
-import { Dropdown,Container } from 'react-bootstrap'
+import { Jumbotron, Container } from 'react-bootstrap'
 import { Select } from 'react-dropdown-select'
+import{Button} from 'bootstrap'
+
 
 export default class App extends Component {
   constructor(props) {
@@ -13,27 +15,31 @@ export default class App extends Component {
 
     this.state = {
       requestList: [
-      { id: 1, location: "RC East", callSign: "SomeDude", patientUrgency: "Urgent", responder: "" },
-      { id: 2, location: "RC West", callSign: "SomeDude", patientUrgency: "Urgent", responder: ""},
-      { id: 3, location: "MSAB", callSign: "SomeDude", patientUrgency: "Urgent", responder: "DustOff 2" },
-      { id: 4, location: "Al Asad AB", callSign: "SomeDude", patientUrgency: "Urgent", responder: "DustOff 1" },
-      { id: 5, location: "Mission 7", callSign: "SmokeHound", patientUrgency: "Urgent Surgical", responder: "" },
-      { id: 6, location: "Mission Zero", callSign: "SaveMe", patientUrgency: "Urgent", responder: "DustOff 2" },
-      { id: 7, location: "MC", callSign: "done", patientUrgency: "none", responder: "DustOff 2", completed: true },
-    ],
-    responderList: [
-      { value: "DustOff 1", label: "DustOff 1" },
-      { value: "DustOff 2", label: "DustOff 2" }
-      // { value: "Dispatch", label: "Dispatch" }
+        { id: 1, location: "RC East", callSign: "SomeDude", patientUrgency: "Urgent", specialEquipment: "Jungle Penetrator", patientType: "litter", security: "N-none", hlzMarking:"smoke",nationality: "uniformed", nbc:"N-none",responder: "" },
+        { id: 2, location: "RC West", callSign: "SomeDude", patientUrgency: "Urgent", specialEquipment: "Jungle Penetrator", patientType: "litter", security: "N-none", hlzMarking:"smoke",nationality: "uniformed", nbc:"N-none",responder: "" },
+        { id: 3, location: "MSAB", callSign: "SomeDude", patientUrgency: "Urgent",  specialEquipment: "Jungle Penetrator", patientType: "litter", security: "N-none", hlzMarking:"smoke",nationality: "uniformed", nbc:"N-none",responder: "" },
+        { id: 4, location: "Al Asad AB", callSign: "SomeDude", patientUrgency: "Urgent",  specialEquipment: "Jungle Penetrator", patientType: "litter", security: "N-none", hlzMarking:"smoke",nationality: "uniformed", nbc:"N-none",responder: "DustOff 1" },
+        { id: 5, location: "Mission 7", callSign: "SmokeHound", patientUrgency: "Urgent Surgical",  specialEquipment: "Jungle Penetrator", patientType: "litter", security: "N-none", hlzMarking:"smoke",nationality: "uniformed", nbc:"N-none",responder: "" },
+        { id: 6, location: "Mission Zero", callSign: "SaveMe", patientUrgency: "Urgent",  specialEquipment: "Jungle Penetrator", patientType: "litter", security: "N-none", hlzMarking:"smoke",nationality: "uniformed", nbc:"N-none",responder: "DustOff 2" },
+        { id: 7, location: "MC", callSign: "done", patientUrgency: "none", responder: "DustOff 2", completed: true },
       ],
-     // viewSelector: this.state.responderList.concat({ value: "Dispatch", label: "Dispatch" }),
+      responderList: [
+        { value: "DustOff 1", label: "DustOff 1" },
+        { value: "DustOff 2", label: "DustOff 2" }
+        // { value: "Dispatch", label: "Dispatch" }
+      ],
+      // viewSelector: this.state.responderList.concat({ value: "Dispatch", label: "Dispatch" }),
       currentSelection: "Dispatch",
       currentResponderAssignment: "",
       currentMissionAssignment: undefined,
+      toggleNineLine: false,
+      toggleDispatch: false,
+      toggleResponder: false,
+      toggleAddResponder: false,
     }
   }
 
-  componentDidMount(){
+  componentDidMount() {
     //Anything we want to run on application startup goes here.
     this.getRequests();
   }
@@ -58,22 +64,21 @@ export default class App extends Component {
   handleNewRequest(request) {
     //Sends POST Request to backend
     console.log(request)
-    // Had to comment out to get drop downs in NinelineCreator to work.
-    // request.target.reset()
     const nineLine = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request)
     };
     fetch('http://localhost:9090/nineline', nineLine)
-    .then(this.getRequests())
+      .then(this.getRequests())
+      .then(this.toggleNineLineButton())
     //setstate
-    // let tempRequestList = this.state.requestList
-    // request.complete = false;
-    // request.responder = "";
-    // request.id = 0; //need to make this match database
-    // tempRequestList.push(request)
-    // this.setState({requestList:tempRequestList})
+    let tempRequestList = this.state.requestList
+    request.complete = false;
+    request.responder = "";
+    request.id = 0; //need to make this match database
+    tempRequestList.push(request)
+    this.setState({requestList:tempRequestList})
     // this.goFetch("http://localhost:9090/nineline", "POST", request, "")
 
   }
@@ -81,7 +86,7 @@ export default class App extends Component {
 
   async completeButton(id) {
     //update db
-    await this.goFetch("http://localhost:9090/requests/"+id, "PATCH", {completed:true} , "")
+    await this.goFetch("http://localhost:9090/requests/" + id, "PATCH", { completed: true }, "")
     // //update our data
     // var tempResponderList = this.state.responderList
     // //find my responder by id
@@ -97,7 +102,7 @@ export default class App extends Component {
   addResponder(event) {
     var tempResponderList = this.state.responderList
     tempResponderList.push(event)
-    this.setState({responderList:tempResponderList})
+    this.setState({ responderList: tempResponderList })
   }
 
 
@@ -122,23 +127,23 @@ export default class App extends Component {
     return true
   }
 
-  assignResponder(assignedResponder){
+  assignResponder(assignedResponder) {
     //Placeholder for our patch
     //Patches responder : assignedResponder
     console.log(this.state.currentMissionAssignment)
     console.log(assignedResponder)
 
-    fetch('http://localhost:9090/requests/'+ this.state.currentMissionAssignment.id, {method: 'PATCH', body: JSON.stringify({responder: assignedResponder}), headers: {'Content-Type': 'application/json'}})
-    .then( this.getRequests())
-    
+    fetch('http://localhost:9090/requests/' + this.state.currentMissionAssignment.id, { method: 'PATCH', body: JSON.stringify({ responder: assignedResponder }), headers: { 'Content-Type': 'application/json' } })
+    this.getRequests()
+
   }
-  
+
   setCurrentSelection(choice) {
     this.setState({ currentSelection: choice[0].value })
   }
 
   //Please let Rob know if you change anything below here :) vvv
-  
+
   setCurrentResponderAssignment(choice) {
     this.setState({ currentResponderAssignment: choice[0].value })
   }
@@ -147,57 +152,84 @@ export default class App extends Component {
     this.setState({ currentMissionAssignment: choice })
   }
 
-//End of Rob's section
-  
+  //End of Rob's section
+
+  toggleNineLineButton(){
+    this.setState({toggleNineLine:!this.state.toggleNineLine})
+  }
+
+  toggleDispatchButton(){
+    this.getRequests()
+    this.setState({toggleDispatch:!this.state.toggleDispatch})
+  }
+
+  toggleResponderButton(){
+    this.setState({toggleResponder:!this.state.toggleResponder})
+  }
+
+  toggleAddResponderButton(){
+    this.setState({toggleAddResponder:!this.state.toggleAddResponder})
+  }
+
   render() {
-    return(
-    
-    <div className="App">
-      <title>9 Line</title>
-      <h1>9 Line Medevac App</h1>
+    return (
 
-      <hr />
+      <div className="App">
+        <title>9 Line</title>
+        <Jumbotron fluid>
+          <Container>
+            <h1><strong className="title-main">REDLINE MEDEVAC</strong></h1>
+            <p><strong> Medical Evacuation Application</strong></p>
+            <p><strong> AFC Software Factory Capstone APR 2021</strong></p>
+          </Container>
+        </Jumbotron>
 
-      <h2>Create New 9 Line</h2>
-      <NineLineCreator handleNewRequest={this.handleNewRequest.bind(this)} />
 
-      <hr />
+        <hr />
 
-      <h2>View Table by Role</h2>
-    
-      <Select options={
-        this.state.responderList.concat({value:"Dispatch", label:"Dispatch"})
-        } 
-        onChange={(choice) => this.setCurrentSelection(choice)} 
-        />
+        <button type ="button" className="btn-light btn-lg" onClick={()=> this.toggleNineLineButton()}>Create New 9 Line</button>{' '}
+        {this.state.toggleNineLine?<NineLineCreator handleNewRequest={this.handleNewRequest.bind(this)} />:""}
 
-      <hr />
+        <hr />
 
-      {
-        this.state.currentSelection != "Dispatch" ? <Responder
-          requests={this.state.requestList}
-          completeClick={this.completeButton.bind(this)}
-          current={this.state.currentSelection}
-        /> : <DispatchView requests={this.state.requestList}
-                           setCurrentResponderAssignment={this.setCurrentResponderAssignment.bind(this)}
-                           responderList={this.state.responderList}
-                           assignResponder={this.assignResponder.bind(this)}
-                           currentResponderAssignment={this.state.currentResponderAssignment}
-                           currentMissionAssignment={this.state.currentMissionAssignment}
-                           setCurrentMissionAssignment={this.setCurrentMissionAssignment.bind(this)}
-          />
-      }
+        <button type ="button" className="btn-light btn-lg" onClick={()=> this.toggleDispatchButton()}>View Dispatch Controller</button>{' '}
+        {this.state.toggleDispatch?
+            <DispatchView requests={this.state.requestList}
+            setCurrentResponderAssignment={this.setCurrentResponderAssignment.bind(this)}
+            responderList={this.state.responderList}
+            assignResponder={this.assignResponder.bind(this)}
+            currentResponderAssignment={this.state.currentResponderAssignment}
+            currentMissionAssignment={this.state.currentMissionAssignment}
+            setCurrentMissionAssignment={this.setCurrentMissionAssignment.bind(this)}
+            addResponder={this.addResponder.bind(this)}
+            toggleAddResponderButton={this.toggleAddResponderButton.bind(this)}
+            toggleAddResponder={this.state.toggleAddResponder}
+            />:""}
 
-      <hr />
 
-      <ResponderCreator
-        addResponder={this.addResponder.bind(this)}
         
-      />
 
-      <hr />
+        <hr />
+        <button type ="button" className="btn-light btn-lg" onClick={()=> this.toggleResponderButton()}>
+         Responder Controller</button>{' '}
+        {
+          this.state.toggleResponder ?
+          <Select options={ this.state.responderList }
+                  onChange={(choice) => this.setCurrentSelection(choice)}/>
+          :
+          ""
+        }
+        { this.state.currentSelection !== "Dispatch" && this.state.toggleResponder ? <Responder
+            requests={this.state.requestList}
+            completeClick={this.completeButton.bind(this)}
+            current={this.state.currentSelection}
+          /> : ""}
 
-    </div>
+        <hr />
+
+        <hr />
+
+      </div>
     );
   }
 
